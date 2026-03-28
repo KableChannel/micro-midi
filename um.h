@@ -32,6 +32,10 @@
   #define UM_EXPORT
 #endif // defined(_WIN32)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef enum
 {
     UM_DEVICETYPE_INPUT,
@@ -49,5 +53,9 @@ void um_list_devices(um_Device** outDevices, unsigned* outNumDevices);
 
 void um_open_device(um_Device* inDevice);
 void um_close_device(um_Device* inDevice);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif __UM
