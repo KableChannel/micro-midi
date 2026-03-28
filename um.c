@@ -19,11 +19,11 @@
 // SOFTWARE.
 
 
-#ifndef UA_EXPORT_LIBRARY
-#define UA_EXPORT_LIBRARY
+#ifndef UM_EXPORT_LIBRARY
+#define UM_EXPORT_LIBRARY
 #endif
 #include "um.h"
-#undef UA_EXPORT_LIBRARY
+#undef UM_EXPORT_LIBRARY
 
 #include <windows.h>
 #include <mmsystem.h>
