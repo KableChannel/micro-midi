@@ -27,17 +27,9 @@
 
 
 #define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #include <mmsystem.h>
-#include <mmdeviceapi.h>
 #undef WIN32_LEAN_AND_MEAN
-
-// At /Wall levels of warnings, these must be defined for MS.
-#ifndef WINAPI_PARTITION_TV_APP 
-#define WINAPI_PARTITION_TV_APP 0
-#endif
-#ifndef WINAPI_PARTITION_TV_TITLE
-#define WINAPI_PARTITION_TV_TITLE 0
-#endif
 
 #include <stdio.h> // temp
 
