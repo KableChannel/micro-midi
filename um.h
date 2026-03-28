@@ -45,7 +45,7 @@ typedef struct
 } um_Device;
 
 
-void um_list_devices(um_Device** outDevices, size_t* outNumDevices);
+void um_list_devices(um_Device** outDevices, unsigned* outNumDevices);
 
 void um_open_device(um_Device* inDevice);
 void um_close_device(um_Device* inDevice);
