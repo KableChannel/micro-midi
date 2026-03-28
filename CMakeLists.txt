@@ -24,7 +24,7 @@ endif()
 
 add_library(micro-midi "um.h" "um.c")
 if (MSVC)
-	# target_link_libraries(micro-midi PRIVATE some library)
+	target_link_libraries(micro-midi PRIVATE Winmm)
 elseif (APPLE)
 	# TODO: figure out what APPLE uses
 endif ()
