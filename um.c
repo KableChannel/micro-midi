@@ -33,13 +33,35 @@
 
 #include <stdio.h> // temp
 
+void CALLBACK MyMidiCallback(
+	HMIDIIN   hMidiIn,
+	UINT      wMsg,
+	DWORD_PTR dwInstance,
+	DWORD_PTR dwParam1,
+	DWORD_PTR dwParam2)
+{
+	(void)hMidiIn;
+	(void)dwInstance;
+	printf("MIDI message: %u %u %u\n", wMsg, (unsigned)dwParam1, (unsigned)dwParam2);
+}
+
 void um_list_devices(um_Device** outDevices, unsigned* outNumDevices)
 {
 	const UINT NumInputDevices = midiInGetNumDevs();
 	const UINT NumOutputDevices = midiOutGetNumDevs();
 	
 	printf("um: # input devices = %u, # output devices = %u\n", NumInputDevices, NumOutputDevices);
+    for (UINT i = 0; i < NumInputDevices; ++i)
+	{
+		MIDIINCAPS incaps;
+		midiInGetDevCaps(i, &incaps, sizeof(incaps));
+
+		printf("%s\n", incaps.szPname);
+	}
 	
+	HMIDIIN handle;
+    midiInOpen(&handle, 0, (DWORD_PTR)MyMidiCallback, 0, CALLBACK_FUNCTION);
+	midiInStart(handle);
 	(void)outDevices;
 	(void)outNumDevices;
 }
