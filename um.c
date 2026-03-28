@@ -25,21 +25,35 @@
 #include "um.h"
 #undef UM_EXPORT_LIBRARY
 
-#include <windows.h>
-#include <mmsystem.h>
+#include <XAudio2.h>
 
+// At /Wall levels of warnings, these must be defined for MS.
+#ifndef WINAPI_PARTITION_TV_APP 
+#define WINAPI_PARTITION_TV_APP 0
+#endif
+#ifndef WINAPI_PARTITION_TV_TITLE
+#define WINAPI_PARTITION_TV_TITLE 0
+#endif
 
-void um_list_devices(um_Device** outDevices, size_t* outNumDevices)
+#include <stdio.h> // temp
+
+void um_list_devices(um_Device** outDevices, unsigned* outNumDevices)
 {
+	const UINT NumInputDevices = midiInGetNumDevs();
+	const UINT NumOutputDevices = midiOutGetNumDevs();
 	
+	printf("um: # input devices = %u, # output devices = %u\n", NumInputDevices, NumOutputDevices);
+	
+	(void)outDevices;
+	(void)outNumDevices;
 }
 
 void um_open_device(um_Device* inDevice)
 {
-	
+	(void)inDevice;
 }
 
 void um_close_device(um_Device* inDevice)
 {
-	
+	(void)inDevice;
 }
