@@ -25,7 +25,10 @@
 #include "um.h"
 #undef UM_EXPORT_LIBRARY
 
-#include <XAudio2.h>
+
+#define WIN32_LEAN_AND_MEAN
+#include <mmdeviceapi.h>
+#undef WIN32_LEAN_AND_MEAN
 
 // At /Wall levels of warnings, these must be defined for MS.
 #ifndef WINAPI_PARTITION_TV_APP 
