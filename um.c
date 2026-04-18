@@ -25,7 +25,7 @@
 #include "um.h"
 #undef UM_EXPORT_LIBRARY
 
-
+#if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <mmsystem.h>
@@ -44,9 +44,48 @@ void CALLBACK MyMidiCallback(
 	(void)dwInstance;
 	printf("MIDI message: %u %u %u\n", wMsg, (unsigned)dwParam1, (unsigned)dwParam2);
 }
+#elif defined(__APPLE__)
+
+#include <CoreMIDI/MidiServices.h>
+
+#include <stdio.h>
+
+// ___________________________________________________________________________________________
+// test program to echo MIDI In to Out
+// ___________________________________________________________________________________________
+
+MIDIPortRef     gOutPort = 0;
+MIDIEndpointRef gDest = 0;
+int             gChannel = 0;
+
+static void MyReadProc(const MIDIPacketList *pktlist, void *refCon, void *connRefCon)
+{
+    if (gOutPort != 0 && gDest != 0) {
+        MIDIPacket *packet = (MIDIPacket *)pktlist->packet; // remove const (!)
+        for (unsigned int j = 0; j < pktlist->numPackets; ++j) {
+            for (int i = 0; i < packet->length; ++i) {
+//              printf("%02X ", packet->data[i]);
+
+                // rechannelize status bytes
+                if (packet->data[i] >= 0x80 && packet->data[i] < 0xF0)
+                    packet->data[i] = (packet->data[i] & 0xF0) | (Byte)gChannel;
+            }
+
+//          printf("\n");
+            packet = MIDIPacketNext(packet);
+        }
+
+        MIDISend(gOutPort, gDest, pktlist);
+    }
+}
+
+#else
+    // TODO: linux distros
+#endif
 
 void um_list_devices(um_Device** outDevices, unsigned* outNumDevices)
 {
+#if defined(_WIN32)
 	const UINT NumInputDevices = midiInGetNumDevs();
 	const UINT NumOutputDevices = midiOutGetNumDevs();
 	
@@ -64,6 +103,70 @@ void um_list_devices(um_Device** outDevices, unsigned* outNumDevices)
 	midiInStart(handle);
 	(void)outDevices;
 	(void)outNumDevices;
+#elif defined(__APPLE__)
+    // create client and ports
+    MIDIClientRef client = 0;
+    MIDIClientCreate(CFSTR("MIDI Echo"), NULL, NULL, &client);
+
+    MIDIPortRef inPort = 0;
+    MIDIInputPortCreate(client, CFSTR("Input port"), MyReadProc, NULL, &inPort);
+    MIDIOutputPortCreate(client, CFSTR("Output port"), &gOutPort);
+
+    // enumerate devices (not really related to purpose of the echo program
+    // but shows how to get information about devices)
+    unsigned long i, n;
+    CFStringRef pname, pmanuf, pmodel;
+    char name[64], manuf[64], model[64];
+
+    n = MIDIGetNumberOfDevices();
+    for (i = 0; i < n; ++i) {
+        MIDIDeviceRef dev = MIDIGetDevice(i);
+
+        MIDIObjectGetStringProperty(dev, kMIDIPropertyName, &pname);
+        MIDIObjectGetStringProperty(dev, kMIDIPropertyManufacturer, &pmanuf);
+        MIDIObjectGetStringProperty(dev, kMIDIPropertyModel, &pmodel);
+
+        CFStringGetCString(pname, name, sizeof(name), 0);
+        CFStringGetCString(pmanuf, manuf, sizeof(manuf), 0);
+        CFStringGetCString(pmodel, model, sizeof(model), 0);
+        CFRelease(pname);
+        CFRelease(pmanuf);
+        CFRelease(pmodel);
+
+        printf("name=%s, manuf=%s, model=%s\n", name, manuf, model);
+    }
+
+    // open connections from all sources
+    n = MIDIGetNumberOfSources();
+    printf("%d sources\n", (int)n);
+    for (i = 0; i < n; ++i) {
+        MIDIEndpointRef src = MIDIGetSource(i);
+        MIDIPortConnectSource(inPort, src, NULL);
+    }
+
+    // find the first destination
+    n = MIDIGetNumberOfDestinations();
+    if (n > 0)
+    {
+        gDest = MIDIGetDestination(0);
+    }
+
+    if (gDest != 0)
+    {
+        MIDIObjectGetStringProperty(gDest, kMIDIPropertyName, &pname);
+        CFStringGetCString(pname, name, sizeof(name), 0);
+        CFRelease(pname);
+        printf("Echoing to channel %d of %s\n", gChannel + 1, name);
+    }
+    else
+    {
+        printf("No MIDI destinations present\n");
+    }
+#else
+    (void)outDevices;
+    (void)outNumDevices;
+    // TODO: linux distros
+#endif
 }
 
 void um_open_device(um_Device* inDevice)

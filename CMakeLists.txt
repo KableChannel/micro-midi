@@ -26,7 +26,9 @@ add_library(micro-midi "um.h" "um.c")
 if (MSVC)
 	target_link_libraries(micro-midi PRIVATE Winmm)
 elseif (APPLE)
-	# TODO: figure out what APPLE uses
+        find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+	find_library(COREMIDI_LIBRARY CoreAudio)
+	target_link_libraries(micro-midi PRIVATE ${COREFOUNDATION_LIBRARY} ${COREMIDI_LIBRARY})
 endif ()
 
 target_compile_features(micro-midi PRIVATE c_std_99)

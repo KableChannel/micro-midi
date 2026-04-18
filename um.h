@@ -58,4 +58,4 @@ void um_close_device(um_Device* inDevice);
 }
 #endif
 
-#endif __UM
+#endif // __UM
